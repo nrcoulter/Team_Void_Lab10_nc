@@ -23,32 +23,75 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public void addToFront(E element) {
-		// TODO 
-		
+		add(0, element);
 	}
 
 	@Override
 	public void addToRear(E element) {
-		// TODO 
-		
+		add(size(), element);
 	}
 
 	@Override
 	public void add(E element) {
-		// TODO 
-		
+		addToRear(element);
 	}
 
 	@Override
 	public void addAfter(E element, E target) {
-		// TODO 
-		
+		// I could change this later to use the add(index, element) function
+		// but I need the indexOf function to be made first
+
+		if (isEmpty()) throw new NoSuchElementException();
+		LinearNode<E> temp = new LinearNode<E>(element);
+
+		LinearNode<E> current = front;
+		while (current != null && !current.getElement().equals(target)) {
+			current = current.getNext();
+		}
+		if (current == null) throw new NoSuchElementException();
+
+		if (current == front) { // Adding to the front
+			temp.setNext(front);
+			front = temp;
+		} else if (current == rear) { // Adding to the rear
+			temp.setNext(current.getNext());
+			current.setNext(temp);
+			rear = temp; 
+		} else { // Adding somwhere in the middle
+			temp.setNext(current.getNext());
+			current.setNext(temp);
+		}
+
+		temp = null;
+		count++;
+		modCount++;
 	}
 
 	@Override
 	public void add(int index, E element) {
-		// TODO 
-		
+		if (index < 0 || index > size()) throw new IndexOutOfBoundsException();
+
+		LinearNode<E> temp = new LinearNode<E>(element);
+
+		if (index == 0) { // Adding to the front
+			if (isEmpty()) rear = temp;
+			temp.setNext(front);
+			front = temp;
+		} else {
+			LinearNode<E> current = front;
+			for (int i = 0; i < index-1; i++) {
+				current = current.getNext();
+			}
+
+			temp.setNext(current.getNext());
+			current.setNext(temp);
+
+			if (index == size()) rear = temp; 
+		}
+
+		temp = null;
+		count++;
+		modCount++;
 	}
 
 	@Override
@@ -106,14 +149,12 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public E first() {
-		// TODO 
-		return null;
+		return front.getElement();
 	}
 
 	@Override
 	public E last() {
-		// TODO 
-		return null;
+		return rear.getElement();
 	}
 
 	@Override
@@ -124,20 +165,24 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public boolean isEmpty() {
-		// TODO 
-		return false;
+		return size() == 0;
 	}
 
 	@Override
 	public int size() {
-		// TODO 
-		return 0;
+		return this.count;
 	}
 
 	@Override
 	public String toString() {
-		// TODO
-		return "";
+		String result = "[";
+		LinearNode<E> current = front;
+		while (current != null) {
+			result += current.getElement();
+			if (current.getNext() != null) result += ", ";
+			current = current.getNext();
+		}
+		return result + "]";
 	}
 
 	private E removeElement(LinearNode<E> previous, LinearNode<E> current) {
@@ -170,6 +215,7 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 		private LinearNode<E> current;
 		private LinearNode<E> next;
 		private int iterModCount;
+		private boolean canRemove;
 		
 		/** Creates a new iterator for the list */
 		public SLLIterator() {
@@ -177,23 +223,38 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 			current = null;
 			next = front;
 			iterModCount = modCount;
+			canRemove = false;
 		}
 
 		@Override
 		public boolean hasNext() {
-			// TODO 
-			return false;
+			if (iterModCount != modCount) throw new ConcurrentModificationException();
+            return next.getNext() != null;
 		}
 
 		@Override
 		public E next() {
-			// TODO 
-			return null;
+			if (!hasNext()) throw new NoSuchElementException();
+            E item = next.getElement();
+
+			next = next.getNext();
+
+			canRemove = true;
+            return item;
 		}
 		
 		@Override
 		public void remove() {
-			// TODO
+			if (iterModCount != modCount) throw new ConcurrentModificationException();
+            if (!canRemove) throw new IllegalStateException();
+
+			LinearNode<E> temp = front;
+			while (temp.getNext() != next) {
+				temp = temp.getNext();
+			}
+			temp.setNext(next.getNext());
+
+            canRemove = false;
 		}
 	}
 
