@@ -38,10 +38,8 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public void addAfter(E element, E target) {
-		// I could change this later to use the add(index, element) function
-		// but I need the indexOf function to be made first
-
 		if (isEmpty()) throw new NoSuchElementException();
+
 		LinearNode<E> temp = new LinearNode<E>(element);
 
 		LinearNode<E> current = front;
@@ -50,17 +48,9 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 		}
 		if (current == null) throw new NoSuchElementException();
 
-		if (current == front) { // Adding to the front
-			temp.setNext(front);
-			front = temp;
-		} else if (current == rear) { // Adding to the rear
-			temp.setNext(current.getNext());
-			current.setNext(temp);
-			rear = temp; 
-		} else { // Adding somwhere in the middle
-			temp.setNext(current.getNext());
-			current.setNext(temp);
-		}
+		temp.setNext(current.getNext());
+		current.setNext(temp);
+		if (current == rear) rear = temp; 
 
 		temp = null;
 		count++;
@@ -73,7 +63,7 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 		LinearNode<E> temp = new LinearNode<E>(element);
 
-		if (index == 0) { // Adding to the front
+		if (index == 0) {
 			if (isEmpty()) rear = temp;
 			temp.setNext(front);
 			front = temp;
@@ -108,9 +98,8 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public E remove(E element) {
-		if (isEmpty()) {
-			throw new NoSuchElementException();
-		}
+		if (isEmpty()) throw new NoSuchElementException();
+
 		LinearNode<E> current = front, previous = null;
 		while (current != null && !current.getElement().equals(element)) {
 			previous = current;
@@ -242,7 +231,7 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 		private LinearNode<E> previous;
 		private LinearNode<E> current;
 		private LinearNode<E> next;
-		private int iterModCount;
+		private int iterModCount, index;
 		private boolean canRemove;
 		
 		/** Creates a new iterator for the list */
@@ -252,12 +241,13 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 			next = front;
 			iterModCount = modCount;
 			canRemove = false;
+			index = 0;
 		}
 
 		@Override
 		public boolean hasNext() {
 			if (iterModCount != modCount) throw new ConcurrentModificationException();
-            return next.getNext() != null;
+            return index < size();
 		}
 
 		@Override
@@ -265,9 +255,13 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 			if (!hasNext()) throw new NoSuchElementException();
             E item = next.getElement();
 
+			previous = current;
+			current = next;
 			next = next.getNext();
 
+			index++;
 			canRemove = true;
+			
             return item;
 		}
 		
@@ -276,12 +270,11 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 			if (iterModCount != modCount) throw new ConcurrentModificationException();
             if (!canRemove) throw new IllegalStateException();
 
-			LinearNode<E> temp = front;
-			while (temp.getNext() != next) {
-				temp = temp.getNext();
-			}
-			temp.setNext(next.getNext());
+			removeElement(previous, current);
 
+			current = previous;
+			index--;
+			iterModCount++;
             canRemove = false;
 		}
 	}
