@@ -96,11 +96,13 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public E removeFirst() {
+		if (isEmpty()) throw new NoSuchElementException();
 		return remove(front.getElement());
 	}
 
 	@Override
 	public E removeLast() {
+		if (isEmpty()) throw new NoSuchElementException();
 		return remove(rear.getElement());
 	}
 
@@ -123,31 +125,15 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public E remove(int index) {
-		if (index < 0 || index > size()) throw new IndexOutOfBoundsException();
-		LinearNode<E> current = front; previous = null;
-		E result = null;
-		if (index == 0) {
-			front = current.getNext();
-			result = current.getElement();
-		} else {
-			while (index != 0) {
-				previous = current;
-				current = current.getNext();
-			}
-			if (index == size()) {
-				previous.setNext(null);
-				result = previous.getElement();
-			} else {
-				previous.setNext(current.getNext());
-				result = current.getElement();
-			}
-		}
-		return result;
+		if (index < 0 || index >= size()) throw new IndexOutOfBoundsException();
+
+		return remove(get(index));
 	}
 
 	@Override
 	public void set(int index, E element) {
-		if (index < 0 || index > size()) throw new IndexOutOfBoundsException();
+		if (index < 0 || index >= size()) throw new IndexOutOfBoundsException();
+
 		LinearNode<E> current = front;
 		int i = 0;
 		while (i != index) {
@@ -159,36 +145,37 @@ public class IUSingleLinkedList<E> implements IndexedUnsortedList<E> {
 
 	@Override
 	public E get(int index) {
-		if (index < 0 || index > size()) throw new IndexOutOfBoundsException();
+		if (index < 0 || index >= size()) throw new IndexOutOfBoundsException();
+
 		LinearNode<E> current = front;
-		for (int i = 0; i < size(); i++) {
-			if (i == index) {
-				return current.getElement();
-			}
-			current.getNext();
+		for (int i = 0; i < index; i++) {
+			current = current.getNext();
 		}
-		return null;
+
+		return current.getElement();
 	}
 
 	@Override
 	public int indexOf(E element) {
-		if (isEmpty()) throw new NoSuchElementException();
 		LinearNode<E> current = front;
 		for (int i = 0; i < size(); i++) {
-			if (current.getElement.equals(element)) {
+			if (current.getElement().equals(element)) {
 				return i;
 			}
+			current = current.getNext();
 		}
 		return -1;
 	}
 
 	@Override
 	public E first() {
+		if (isEmpty()) throw new NoSuchElementException();
 		return front.getElement();
 	}
 
 	@Override
 	public E last() {
+		if (isEmpty()) throw new NoSuchElementException();
 		return rear.getElement();
 	}
 
